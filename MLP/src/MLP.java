@@ -1,7 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -105,8 +104,8 @@ public class MLP {
         return x * (1 - x);
     }
     
-    public static List<double[]> loadData(String filePath) {
-        List<double[]> dataset = new ArrayList<>();
+    public static ArrayList<double[]> loadData(String filePath) {
+        ArrayList<double[]> dataset = new ArrayList<>();
         try (Scanner scanner = new Scanner(new File(filePath))) {
             while (scanner.hasNextLine()) {
                 String[] line = scanner.nextLine().split(",");
@@ -126,8 +125,8 @@ public class MLP {
 		String dataset1Path = "dataset1.csv";
         String dataset2Path = "dataset2.csv";
 
-        List<double[]> dataset1 = loadData(dataset1Path);
-        List<double[]> dataset2 = loadData(dataset2Path);
+        ArrayList<double[]> dataset1 = loadData(dataset1Path);
+        ArrayList<double[]> dataset2 = loadData(dataset2Path);
 
         int inputNodes = 64;
         int hiddenNodes = 15;
@@ -186,12 +185,12 @@ public class MLP {
         double accuracy2 = trainAndTest(dataset2, dataset1, inputNodes, hiddenNodes, outputNodes);
 
         // Print results
-        System.out.printf("Test 1 Accuracy: %.2f%%%n", accuracy1 * 100);
-        System.out.printf("Test 2 Accuracy: %.2f%%%n", accuracy2 * 100);
-        System.out.printf("Average Accuracy: %.2f%%%n", (accuracy1 + accuracy2) / 2 * 100);
+        System.out.printf("Test 1 Accuracy: %.2f%%\n", accuracy1 * 100);
+        System.out.printf("Test 2 Accuracy: %.2f%%\n", accuracy2 * 100);
+        System.out.printf("Average Accuracy: %.2f%%\n", (accuracy1 + accuracy2) / 2 * 100);
     }
 
-    private static double trainAndTest(List<double[]> trainSet, List<double[]> testSet, int inputNodes, int hiddenNodes, int outputNodes) {
+    private static double trainAndTest(ArrayList<double[]> trainSet, ArrayList<double[]> testSet, int inputNodes, int hiddenNodes, int outputNodes) {
         MLP mlp = new MLP(inputNodes, hiddenNodes, outputNodes);
 
         // Train on the training set
