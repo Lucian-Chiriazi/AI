@@ -17,8 +17,8 @@ public class ApplicationRunner {
         int[] categories2 = new int[PATTERNS];
         
      // Read data
-        readDataSet(dataSetOne, digitDataSet1, categories1);
-        readDataSet(dataSetTwo, digitDataSet2, categories2);
+        readDataSet(dataSetTwo, digitDataSet1, categories1);
+        readDataSet(dataSetOne, digitDataSet2, categories2);
         
         int correctMatches = 0;
         
@@ -66,8 +66,8 @@ public class ApplicationRunner {
 
                 rowCount++;
             }
-        } catch (IOException error) {
-            System.out.println("Error reading file: " + fileName + " - " + error.getMessage());
+        } catch (IOException fileNotFoundException) {
+            System.out.println("Error reading file: " + fileName + " - " + fileNotFoundException.getMessage());
         }
     
 	}

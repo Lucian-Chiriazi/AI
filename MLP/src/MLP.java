@@ -5,16 +5,16 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class MLP {
-	
-	private int inputNodes;
+
+    private int inputNodes;
     private int hiddenNodes;
     private int outputNodes;
     private double[][] weightsInputToHidden; // Weights from input to hidden layer
     private double[][] weightsHiddenToOutput; // Weights from hidden to output layer
     private double learningRate = 0.01;
-    
+
     public MLP(int inputNodes, int hiddenNodes, int outputNodes) {
-    	this.inputNodes = inputNodes;
+        this.inputNodes = inputNodes;
         this.hiddenNodes = hiddenNodes;
         this.outputNodes = outputNodes;
 
@@ -24,160 +24,133 @@ public class MLP {
         initializeWeights(weightsInputToHidden);
         initializeWeights(weightsHiddenToOutput);
     }
-    
+
+    // Initialize weights with random values between -0.5 and 0.5
     private void initializeWeights(double[][] weights) {
-    	Random random = new Random(4);
-        for (int i = 0; i < weights.length; i++) {
-            for (int j = 0; j < weights[i].length; j++) {
-                weights[i][j] = random.nextDouble() - 0.5; // Random values between -0.5 and 0.5
+        Random random = new Random();
+        for (int inputIndex = 0; inputIndex < weights.length; inputIndex++) {
+            for (int hiddenIndex = 0; hiddenIndex < weights[inputIndex].length; hiddenIndex++) {
+                weights[inputIndex][hiddenIndex] = random.nextDouble() - 0.5;
             }
         }
     }
-    
+
+    // Feedforward process to compute the outputs
     private double[] feedForward(double[] inputs) {
-        double[] hiddenInputs = new double[hiddenNodes];
-        for (int i = 0; i < hiddenNodes; i++) {
-            for (int j = 0; j < inputNodes; j++) {
-                hiddenInputs[i] += inputs[j] * weightsInputToHidden[j][i];
+        double[] hiddenLayerInputs = new double[hiddenNodes];
+
+        // Compute activations for the hidden layer
+        for (int hiddenIndex = 0; hiddenIndex < hiddenNodes; hiddenIndex++) {
+            for (int inputIndex = 0; inputIndex < inputNodes; inputIndex++) {
+                hiddenLayerInputs[hiddenIndex] += inputs[inputIndex] * weightsInputToHidden[inputIndex][hiddenIndex];
             }
-            hiddenInputs[i] = sigmoid(hiddenInputs[i]);
+            hiddenLayerInputs[hiddenIndex] = sigmoid(hiddenLayerInputs[hiddenIndex]);
         }
 
-        double[] outputs = new double[outputNodes];
-        for (int i = 0; i < outputNodes; i++) {
-            for (int j = 0; j < hiddenNodes; j++) {
-                outputs[i] += hiddenInputs[j] * weightsHiddenToOutput[j][i];
+        double[] outputLayerOutputs = new double[outputNodes];
+
+        // Compute activations for the output layer
+        for (int outputIndex = 0; outputIndex < outputNodes; outputIndex++) {
+            for (int hiddenIndex = 0; hiddenIndex < hiddenNodes; hiddenIndex++) {
+                outputLayerOutputs[outputIndex] += hiddenLayerInputs[hiddenIndex] * weightsHiddenToOutput[hiddenIndex][outputIndex];
             }
-            outputs[i] = sigmoid(outputs[i]);
+            outputLayerOutputs[outputIndex] = sigmoid(outputLayerOutputs[outputIndex]);
         }
 
-        return outputs;
+        return outputLayerOutputs;
     }
 
+    // Train the network using backpropagation
     private void train(double[] inputs, double[] targets) {
-        double[] hiddenInputs = new double[hiddenNodes];
-        for (int i = 0; i < hiddenNodes; i++) {
-            for (int j = 0; j < inputNodes; j++) {
-                hiddenInputs[i] += inputs[j] * weightsInputToHidden[j][i];
+        double[] hiddenLayerInputs = new double[hiddenNodes];
+
+        // Compute activations for the hidden layer
+        for (int hiddenIndex = 0; hiddenIndex < hiddenNodes; hiddenIndex++) {
+            for (int inputIndex = 0; inputIndex < inputNodes; inputIndex++) {
+                hiddenLayerInputs[hiddenIndex] += inputs[inputIndex] * weightsInputToHidden[inputIndex][hiddenIndex];
             }
-            hiddenInputs[i] = sigmoid(hiddenInputs[i]);
+            hiddenLayerInputs[hiddenIndex] = sigmoid(hiddenLayerInputs[hiddenIndex]);
         }
 
-        double[] outputs = new double[outputNodes];
-        for (int i = 0; i < outputNodes; i++) {
-            for (int j = 0; j < hiddenNodes; j++) {
-                outputs[i] += hiddenInputs[j] * weightsHiddenToOutput[j][i];
+        double[] outputLayerOutputs = new double[outputNodes];
+
+        // Compute activations for the output layer
+        for (int outputIndex = 0; outputIndex < outputNodes; outputIndex++) {
+            for (int hiddenIndex = 0; hiddenIndex < hiddenNodes; hiddenIndex++) {
+                outputLayerOutputs[outputIndex] += hiddenLayerInputs[hiddenIndex] * weightsHiddenToOutput[hiddenIndex][outputIndex];
             }
-            outputs[i] = sigmoid(outputs[i]);
+            outputLayerOutputs[outputIndex] = sigmoid(outputLayerOutputs[outputIndex]);
         }
 
+        // Calculate output errors
         double[] outputErrors = new double[outputNodes];
-        for (int i = 0; i < outputNodes; i++) {
-            outputErrors[i] = targets[i] - outputs[i];
+        for (int outputIndex = 0; outputIndex < outputNodes; outputIndex++) {
+            outputErrors[outputIndex] = targets[outputIndex] - outputLayerOutputs[outputIndex];
         }
 
+        // Calculate hidden layer errors
         double[] hiddenErrors = new double[hiddenNodes];
-        for (int i = 0; i < hiddenNodes; i++) {
-            for (int j = 0; j < outputNodes; j++) {
-                hiddenErrors[i] += outputErrors[j] * weightsHiddenToOutput[i][j];
+        for (int hiddenIndex = 0; hiddenIndex < hiddenNodes; hiddenIndex++) {
+            for (int outputIndex = 0; outputIndex < outputNodes; outputIndex++) {
+                hiddenErrors[hiddenIndex] += outputErrors[outputIndex] * weightsHiddenToOutput[hiddenIndex][outputIndex];
             }
         }
 
-        for (int i = 0; i < hiddenNodes; i++) {
-            for (int j = 0; j < outputNodes; j++) {
-                weightsHiddenToOutput[i][j] += learningRate * outputErrors[j] * sigmoidDerivative(outputs[j]) * hiddenInputs[i];
+        // Update weights from hidden to output layer
+        for (int hiddenIndex = 0; hiddenIndex < hiddenNodes; hiddenIndex++) {
+            for (int outputIndex = 0; outputIndex < outputNodes; outputIndex++) {
+                weightsHiddenToOutput[hiddenIndex][outputIndex] += learningRate * outputErrors[outputIndex] * sigmoidDerivative(outputLayerOutputs[outputIndex]) * hiddenLayerInputs[hiddenIndex];
             }
         }
 
-        for (int i = 0; i < inputNodes; i++) {
-            for (int j = 0; j < hiddenNodes; j++) {
-                weightsInputToHidden[i][j] += learningRate * hiddenErrors[j] * sigmoidDerivative(hiddenInputs[j]) * inputs[i];
+        // Update weights from input to hidden layer
+        for (int inputIndex = 0; inputIndex < inputNodes; inputIndex++) {
+            for (int hiddenIndex = 0; hiddenIndex < hiddenNodes; hiddenIndex++) {
+                weightsInputToHidden[inputIndex][hiddenIndex] += learningRate * hiddenErrors[hiddenIndex] * sigmoidDerivative(hiddenLayerInputs[hiddenIndex]) * inputs[inputIndex];
             }
         }
     }
 
+    // Sigmoid activation function
     private double sigmoid(double x) {
         return 1 / (1 + Math.exp(-x));
     }
 
+    // Derivative of sigmoid function
     private double sigmoidDerivative(double x) {
         return x * (1 - x);
     }
-    
+
+    // Load data from a file
     public static ArrayList<double[]> loadData(String filePath) {
         ArrayList<double[]> dataset = new ArrayList<>();
         try (Scanner scanner = new Scanner(new File(filePath))) {
             while (scanner.hasNextLine()) {
                 String[] line = scanner.nextLine().split(",");
                 double[] data = new double[line.length];
-                for (int i = 0; i < line.length; i++) {
-                    data[i] = Double.parseDouble(line[i]);
+                for (int dataIndex = 0; dataIndex < line.length; dataIndex++) {
+                    data[dataIndex] = Double.parseDouble(line[dataIndex]);
                 }
                 dataset.add(data);
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+        } catch (FileNotFoundException fileNotFoundException) {
+            fileNotFoundException.printStackTrace();
         }
         return dataset;
     }
-    
-	public static void main(String[] args) {
-		String dataset1Path = "dataset1.csv";
+
+    // Main method for training and testing
+    public static void main(String[] args) {
+        String dataset1Path = "dataset1.csv";
         String dataset2Path = "dataset2.csv";
 
         ArrayList<double[]> dataset1 = loadData(dataset1Path);
         ArrayList<double[]> dataset2 = loadData(dataset2Path);
 
         int inputNodes = 64;
-        int hiddenNodes = 15;
+        int hiddenNodes = 500;
         int outputNodes = 10;
 
-//        // Train on dataset1 and test on dataset2
-//        MLP mlp = new MLP(inputNodes, hiddenNodes, outputNodes);
-//        for (double[] data : dataset1) {
-//            double[] inputs = new double[inputNodes];
-//            double[] targets = new double[outputNodes];
-//            System.arraycopy(data, 0, inputs, 0, inputNodes);
-//            int labelIndex = (int) data[inputNodes];
-//targets[labelIndex] = 1.0;
-//            mlp.train(inputs, targets);
-//        }
-//
-//        System.out.println("Testing on dataset2...");
-//        for (double[] data : dataset2) {
-//            double[] inputs = new double[inputNodes];
-//            double[] targets = new double[outputNodes];
-//            System.arraycopy(data, 0, inputs, 0, inputNodes);
-//            int labelIndex = (int) data[inputNodes];
-//targets[labelIndex] = 1.0;
-//            double[] outputs = mlp.feedForward(inputs);
-//            System.out.println("Expected: " + (int) data[inputNodes] + ", Predicted: " + argMax(outputs));
-//        }
-//
-//        // Train on dataset2 and test on dataset1
-//        mlp = new MLP(inputNodes, hiddenNodes, outputNodes);
-//        for (double[] data : dataset2) {
-//            double[] inputs = new double[inputNodes];
-//            double[] targets = new double[outputNodes];
-//            System.arraycopy(data, 0, inputs, 0, inputNodes);
-//            int labelIndex = (int) data[inputNodes];
-//targets[labelIndex] = 1.0;
-//            mlp.train(inputs, targets);
-//        }
-//
-//        System.out.println("Testing on dataset1...");
-//        for (double[] data : dataset1) {
-//            double[] inputs = new double[inputNodes];
-//            double[] targets = new double[outputNodes];
-//            System.arraycopy(data, 0, inputs, 0, inputNodes);
-//            int labelIndex = (int) data[inputNodes];
-//targets[labelIndex] = 1.0;
-//            double[] outputs = mlp.feedForward(inputs);
-//            System.out.println("Expected: " + (int) data[inputNodes] + ", Predicted: " + argMax(outputs));
-//        }
-      
-        
-        
         // Fold 1: Train on dataset1, test on dataset2
         double accuracy1 = trainAndTest(dataset1, dataset2, inputNodes, hiddenNodes, outputNodes);
 
@@ -190,6 +163,7 @@ public class MLP {
         System.out.printf("Average Accuracy: %.2f%%\n", (accuracy1 + accuracy2) / 2 * 100);
     }
 
+    // Train and test the network on given datasets
     private static double trainAndTest(ArrayList<double[]> trainSet, ArrayList<double[]> testSet, int inputNodes, int hiddenNodes, int outputNodes) {
         MLP mlp = new MLP(inputNodes, hiddenNodes, outputNodes);
 
@@ -203,33 +177,31 @@ public class MLP {
         }
 
         // Test on the test set
-        int correct = 0;
+        int correctPredictions = 0;
         for (double[] data : testSet) {
             double[] inputs = new double[inputNodes];
-            int actual = (int) data[inputNodes];
+            int actualLabel = (int) data[inputNodes];
             System.arraycopy(data, 0, inputs, 0, inputNodes);
 
             double[] outputs = mlp.feedForward(inputs);
-            int predicted = maxValue(outputs);
+            int predictedLabel = maxValue(outputs);
 
-            if (predicted == actual) {
-                correct++;
+            if (predictedLabel == actualLabel) {
+                correctPredictions++;
             }
         }
 
-        return (double) correct / testSet.size();
+        return (double) correctPredictions / testSet.size();
     }
 
+    // Find the index of the maximum value in the array
     private static int maxValue(double[] outputs) {
         int maxIndex = 0;
-        for (int i = 1; i < outputs.length; i++) {
-            if (outputs[i] > outputs[maxIndex]) {
-                maxIndex = i;
+        for (int outputIndex = 1; outputIndex < outputs.length; outputIndex++) {
+            if (outputs[outputIndex] > outputs[maxIndex]) {
+                maxIndex = outputIndex;
             }
         }
         return maxIndex;
     }
-		
 }
-
-
